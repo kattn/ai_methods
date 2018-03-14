@@ -29,6 +29,17 @@ class Node:
         self.child = {}
         self.classification = 0
 
+    def __str__(self):
+        # Formats a string to be used at http://mshang.ca/syntree/
+        if self.child:
+            children = '{:s}]'.format("".join(
+                        str(self.child[k]) for k in self.child.keys()))
+            return ('[{:d} '.format(self.attr.id) + children)
+
+
+        else:
+            return '[{:d}]'.format(self.attr.id)
+
     def addChild(self, vk, node):
         if(vk in self.attr.pos_values):
             self.child[vk] = node
@@ -51,21 +62,22 @@ def decision_tree_learning(examples, attributes, parent_examples, importance):
         return examples[0].target
 
     # If there are no attributes
-    if len( attributes ) == 0:
+    for attr in attributes:
+        if type(attr) != int:
+            break
+    else:
         # print("No attributes")
         return plurality_value(examples)
 
-    attr = max([(importance(attr, examples), attr) for attr in attributes]
+    attr = max([(importance(attr, examples), attr) for attr in attributes if type(attr) != int]
                , key=(lambda x: x[0]))[1]
 
     # tree[attr] has index of 0 and 1
     tree = Node(attr)
     for vk in attr.pos_values:  #values 1 and 2
-        exs = [e for e in examples if e.attributes[attr.id] == vk]
-        # continue from here
-
+        exs = [e for e in examples if e.attributes[attr.id].val == vk]
         exclude_attr = list(attributes)
-        del exclude_attr[attr.id]
+        exclude_attr[attr.id] = 0
         sub_tree = decision_tree_learning(exs, exclude_attr, examples, importance)
         tree.addChild(vk, sub_tree)
 
@@ -74,14 +86,17 @@ def decision_tree_learning(examples, attributes, parent_examples, importance):
 
 # Selects the most commom output value among a set of examples
 def plurality_value(examples):
-    sum_zeros = 0
     sum_ones = 0
+    sum_twos = 0
     for ex in examples:
         if ex.target == 1:
             sum_ones += 1
         else:
-            sum_zeros += 1
-    return max(sum_ones, sum_zeros)
+            sum_twos += 1
+    if sum_ones < sum_twos:
+        return 2
+    else:
+        return 1
 
 
 def get_data(path):
@@ -94,25 +109,19 @@ def get_data(path):
     return cases
 
 
-def print_tree(node):
-    open_set = [node]
-    while True:
-        current = open_set.pop(0)
-        if type(current) != type(0):
-            print("|" + str(current.attr.id), end="|\n")
-            for vk, node in current.child.items():
-                print("|" + str(vk), end="|")
-                open_set.append(node)
-
-        if len(open_set) == 0:
-            break
-
-
-def test_tree(self, node, examples):
+def test_tree(node, examples):
     correct_classification = 0
     for example in examples:
         current = node
-        # not done
+        debug_counter = 0
+        while type(current) != int:
+            current = current.child[example.attributes[current.attr.id].val]
+            if debug_counter > 100:
+                break
+        if current == example.target:
+            correct_classification += 1
+    print("Accuracy:", correct_classification/len(examples))
+    print("Correct:", correct_classification,"Total:",len(examples))
 
 
 if __name__ == "__main__":
@@ -123,9 +132,20 @@ if __name__ == "__main__":
     for i in range(len(init_examples[0].attributes)):
         attrs.append(Attr(i))
 
-    tree = decision_tree_learning( init_examples,
+    ran_tree = decision_tree_learning( init_examples,
                                    attrs,
                                    [],
                                    Importance.importance_ran)
 
-    print_tree(tree)
+    print("random importance")
+    print(ran_tree)
+    test_tree(ran_tree, test_data)
+
+    exp_tree = decision_tree_learning( init_examples,
+                                       attrs,
+                                       [],
+                                       Importance.importance_exp)
+
+    print("expected importance")
+    print(exp_tree)
+    test_tree(exp_tree, test_data)
