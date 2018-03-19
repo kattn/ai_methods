@@ -32,13 +32,13 @@ class Node:
     def __str__(self):
         # Formats a string to be used at http://mshang.ca/syntree/
         if self.child:
-            children = '{:s}]'.format("".join(
+            children = "{:s}]".format("".join(
                         str(self.child[k]) for k in self.child.keys()))
-            return ('[{:d} '.format(self.attr.id) + children)
+            return ("[{:d} ".format(self.attr.id) + children)
 
 
         else:
-            return '[{:d}]'.format(self.attr.id)
+            return "[{:d}]".format(self.attr.id)
 
     def addChild(self, vk, node):
         if(vk in self.attr.pos_values):
@@ -77,7 +77,7 @@ def decision_tree_learning(examples, attributes, parent_examples, importance):
     for vk in attr.pos_values:  #values 1 and 2
         exs = [e for e in examples if e.attributes[attr.id].val == vk]
         exclude_attr = list(attributes)
-        exclude_attr[attr.id] = 0
+        exclude_attr[attr.id] = 0 #
         sub_tree = decision_tree_learning(exs, exclude_attr, examples, importance)
         tree.addChild(vk, sub_tree)
 
