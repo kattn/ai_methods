@@ -15,11 +15,13 @@ def classify(w,x):
     x=np.hstack(([1],x))
     return 0 if (logistic_wx(w,x)<0.5) else 1
 #x_train = [number_of_samples,number_of_features] = number_of_samples x \in R^number_of_features
+
+# Done programming and needs testing
 def stochast_train_w(x_train,y_train,learn_rate=0.1,niter=1000):
     x_train=np.hstack((np.array([1]*x_train.shape[0]).reshape(x_train.shape[0],1),x_train))
     dim=x_train.shape[1]
     num_n=x_train.shape[0]
-    w = np.random.rand(dim)
+    w = np.random.rand(dim)  # step 1
     index_lst=[]
     for it in xrange(niter):
         if(len(index_lst)==0):
@@ -28,8 +30,9 @@ def stochast_train_w(x_train,y_train,learn_rate=0.1,niter=1000):
         x=x_train[xy_index,:]
         y=y_train[xy_index]
         for i in xrange(dim):
-            update_grad = 1 ### something needs to be done here
-            w[i] = w[i] + learn_rate ### something needs to be done here
+            # gradient of loss function
+            update_grad = ( logistic_wx(w[i],x) - y )*x*logistic_wx(w[i],x)*(1-logistic_wx(w[i],x))
+            w[i] = w[i] - learn_rate*update_grad # update weights
     return w
 
 def batch_train_w(x_train,y_train,learn_rate=0.1,niter=1000):
