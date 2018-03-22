@@ -45,8 +45,11 @@ def batch_train_w(x_train,y_train,learn_rate=0.1,niter=1000):
         for i in xrange(dim):
             update_grad=0.0
             for n in xrange(num_n):
+                x = x_train[n]
+                y = y_train[n]
+                update_grad += ( logistic_wx(w[i],x) - y )*x*logistic_wx(w[i],x)*(1-logistic_wx(w[i],x))
                 update_grad+=(-logistic_wx(w,x_train[n])+y_train[n])# something needs to be done here
-            w[i] = w[i] + learn_rate * update_grad/num_n
+            w[i] = w[i] - learn_rate * update_grad/num_n
     return w
 
 def train_and_plot(xtrain,ytrain,xtest,ytest,training_method,learn_rate=0.1,niter=10):
@@ -67,3 +70,50 @@ def train_and_plot(xtrain,ytrain,xtest,ytest,training_method,learn_rate=0.1,nite
     data_test.plot(kind='scatter',x='x',y='y',c='lab',ax=ax,cmap=cm.coolwarm,edgecolors='black')
     print("error=",np.mean(error))
     return w
+
+def get_data(problem):
+    training_files = [ "data/data_big_nonsep_train.csv",
+                       "data/data_big_separable_train.csv"
+                       "data/data_small_nonsep_train.csv",
+                       "data/data_small_separable_train.csv"]
+
+    testing_files = ["data/data_big_nonsep_test.csv",
+                     "data/data_big_separable_test.csv",
+                     "data/data_small_nonsep_test.csv",
+                     "data/data_small_separable_test.csv"]
+
+    # Error handling
+    if type(problem) != int:
+        raise Exception("problem must be of type int")
+    if problem < 0 or problem > 3 :
+        raise Exception("problem must be in the interval (0,3)")
+
+    # Construct training and testing sets
+    xtrain = []
+    ytrain = []
+    with open(training_files[problem]) as f:
+        testLine = f.readline()
+        for line in f:
+            xtrain.append(np.matrix(line.strip().split("\t")[:-1]))
+            ytrain.append(np.matrix(line.strip().split("\t")[-1:]))
+
+    xtest = []
+    ytest = []
+    with open(testing_files[problem]) as f:
+        for line in f:
+            xtest.append(np.matrix(line.strip().split("\t")[:-1]))
+            ytest.append(np.matrix(line.strip().split("\t")[-1:]))
+
+
+    return xtrain, ytrain, xtest, ytest
+
+if __name__ == "__main__":
+    data = get_data(0)
+
+    test = np.hstack(np.array(data[0]))
+
+    weights = train_and_plot(np.array(data[0]),
+                             np.array(data[1]),
+                             np.array(data[2]),
+                             np.array(data[3]),
+                             stochast_train_w)
