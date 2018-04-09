@@ -92,7 +92,7 @@
   where 0\% meaning everything was classified correctly. \\
   \begin{tabular}{|c|c|c|c|c|}
     \hline
-    \multirow{2}{*}{Data set} & \multicolumn{2}{|c|}{Batch} &  \multicolumn{2}{|c|}{Stochastic} \\
+    \multirow{2}{*}{dataset} & \multicolumn{2}{|c|}{Batch} &  \multicolumn{2}{|c|}{Stochastic} \\
     \cline{2-5}
     & Training time(s) & Avg. error(\%) & Training time(s) & Avg. error(\%) \\
     \hline
@@ -106,22 +106,22 @@
     \hline
   \end{tabular} \\
   From the table above it is clear that batch gradient descent training is
-  slower, but slightly more accurate on these data sets. This result concurces
+  slower, but slightly more accurate on these datasets. This result concurces
   with the algorithm as batch gradient descent calculates $T \cdot (d) \cdot
   \abs{D_{train}}$ gradients while stochastic only calculates $T \cdot (d)$.
   By looking further on the number of gradients calculated by the methods the
   correlation between the times also becomes apparent; Stochastic doesn't depend
-  on the size of the data set and calculates $200 \cdot 2 = 400$ gradients,
+  on the size of the dataset and calculates $200 \cdot 2 = 400$ gradients,
   while batch calculates $400 \cdot 11000$ and $400 \cdot 2200$ gradients on 200
-  iterations. As the big data sets are 5 times as large as the small, the
+  iterations. As the big datasets are 5 times as large as the small, the
   difference in training time correlates with this by beeing 5 times as large.
-  As one would believe the non separable data sets are more inacurate and the
-  seperability of the data set has no effect on the time used by the different
+  As one would believe the non separable datasets are more inacurate and the
+  seperability of the dataset has no effect on the time used by the different
   methods since the code does not take this into consideration when calculating
   the gradients.
 
 \item Training the perceptron using stochastic gradients descent on the the
-  small seperatable data set and ploting the results gives the following plot. \\
+  small seperatable dataset and ploting the results gives the following plot. \\
   \noindent\includegraphics[scale=0.7]{plots_percep}
 
 \item The same dataset and algorithm as above gives the following results(plots
@@ -135,11 +135,18 @@
     50 & 49.6 & 0.009 \\
     100 & 1.8 & 0.010 \\
     500 & 0.0 & 0.019 \\
+    \hline
   \end{tabular} \\
   The first mention should be the 49.6\% error rate on 50 iterations. The
-  results are for 5 different sets of initial weights, so the error did not increase from 20 to 50
-  iterations. Other then this the general trend is a decreased error rate for
-  each iteration, concuring with results gotten on the previous tasks.
+  results are for 5 different sets of initial weights, so the error increase from 20 to 50
+  iterations is purly random. Other then this the general trend is a decreased error rate for
+  each iteration, concuring with results gotten on the previous tasks and
+  experiments done during this assignment(where I didn't store the results). The
+  reason of this decrease in error rate is the correction of the weights, which
+  in this case(a 2-d fature vector) can be viewed as trying to place a line
+  between the 2 classifications of the dataset, for each iteration the weights are
+  corrected to minimize the loss function, translating to moving the line in the
+  graph.
 
   \noindent\includegraphics[scale=0.5]{plot_10}
   \noindent\includegraphics[scale=0.5]{plot_20}

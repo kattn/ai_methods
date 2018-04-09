@@ -112,7 +112,6 @@ if __name__ == "__main__":
         data = get_data(prob)
 
         for it, j in zip(iterations, range(len(iterations))):
-            print(it, j)
             errors[prob].append([])
             times[prob].append([])
             for k in range(num_training_runs):
