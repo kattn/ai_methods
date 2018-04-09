@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib
 from matplotlib import cm
+from time import time
 
 def logistic_z(z):
     return 1.0/(1.0+np.exp(-z))
@@ -53,10 +54,13 @@ def train_and_plot(xtrain,ytrain,xtest,ytest,training_method,learn_rate=0.1,nite
     plt.figure()
     #train data
     data = pd.DataFrame(np.hstack((xtrain,ytrain.reshape(xtrain.shape[0],1))),columns=['x','y','lab'])
-    ax=data.plot(kind='scatter',x='x',y='y',c='lab',cmap=cm.copper,edgecolors='black')
+    ax=data.plot(kind='scatter',x='x',y='y',c='lab',cmap=cm.cool,edgecolors='black')
 
+    train_time = time()
     #train weights
     w=training_method(xtrain,ytrain,learn_rate,niter)
+    train_time = time() - train_time
+    print("training time:",train_time)
     error=[]
     y_est=[]
     for i in range(len(ytest)):
@@ -64,10 +68,11 @@ def train_and_plot(xtrain,ytrain,xtest,ytest,training_method,learn_rate=0.1,nite
         y_est.append(classify(w,xtest[i]))
     y_est=np.array(y_est)
     data_test = pd.DataFrame(np.hstack((xtest,y_est.reshape(xtest.shape[0],1))),columns=['x','y','lab'])
-    data_test.plot(kind='scatter',x='x',y='y',c='lab',cmap=cm.coolwarm,edgecolors='black')
+    data_test.plot(kind='scatter',x='x',y='y',c='lab',cmap=cm.Wistia,edgecolors='black', ax=ax)
+
     print("error=",np.mean(error))
     plt.show()
-    return w
+    return w, np.mean(error), train_time
 
 def get_data(problem):
     training_files = [ "data/data_big_nonsep_train.csv",
@@ -96,12 +101,37 @@ def get_data(problem):
     return xtrain, ytrain, xtest, ytest
 
 if __name__ == "__main__":
-    data = get_data(1)
+    problems = [1]  # Which problems to run
+    iterations = [10,20,50,100,500]  # How many iterations will be used for training
+    num_training_runs = 1  # Number of seperate training runs used to calculate avg error and training time
 
-    weights = train_and_plot(np.array(data[0]),
-                             np.array(data[1]),
-                             np.array(data[2]),
-                             np.array(data[3]),
-                             stochast_train_w,
-                             learn_rate=0.1,
-                             niter=1000)
+    # Run and log results
+    errors, times = [[],[],[],[]], [[],[],[],[]]
+    for prob in problems:
+        print("Dataset:", prob)
+        data = get_data(prob)
+
+        for it, j in zip(iterations, range(len(iterations))):
+            print(it, j)
+            errors[prob].append([])
+            times[prob].append([])
+            for k in range(num_training_runs):
+                print("Training run:", k)
+                weights, it_error, it_time = train_and_plot(np.array(data[0]),
+                                                            np.array(data[1]),
+                                                            np.array(data[2]),
+                                                            np.array(data[3]),
+                                                            # batch_train_w,
+                                                            stochast_train_w,
+                                                            learn_rate=0.1,
+                                                            niter=it)
+                errors[prob][j].append(it_error)
+                times[prob][j].append(it_time)
+
+    # Print results
+    print("----Avg----")
+    for prob in problems:
+        for it, i in zip(iterations, range(len(iterations))):
+            print("Problem:", prob, "Iterations:", it)
+            print("Avg. error:", np.mean(errors[prob][i]))
+            print("Avg. times:", np.mean(times[prob][i]))

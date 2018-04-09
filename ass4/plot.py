@@ -114,4 +114,8 @@ for eta in etas:
 ax.legend([str(eta) for eta in etas], title="Learning rates", bbox_to_anchor=(1,1))
 
 fig.tight_layout()
+
+# Save plots to file
+fig.savefig('plots.png', bbox_inches='tight')
+
 plt.show()
