@@ -1,5 +1,5 @@
-  \documentclass[11pt, letterpaper]{report}
-  \usepackage[utf8]{inputenc}
+\documentclass[11pt, letterpaper]{report}
+\usepackage[utf8]{inputenc}
 \usepackage{enumitem}
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -9,6 +9,8 @@
 \usepackage{etoolbox}
 \usepackage{chngcntr}
 \usepackage{titlesec}
+\usepackage{algorithm}
+\usepackage{algorithmicx}
 \usepackage[margin=1in]{geometry}
 
 \AtBeginEnvironment{quote}{\singlespacing\small}
@@ -1011,6 +1013,7 @@ here is typically measured in \emph{Minkowski distance}, or $L^p$-norm:
 $L^p(\vec{x}_j,\vec{x}_q) = (\sum_i \mid x_{ji} - x_{qi} \mid^p)^{1/p}$.
 To avoid one dimension of the attribute vector to dominate, the components are \emph{normalised}.
 
+\setcounter{section}{20}
 \section{Reinforcement learning}
 The agent gets reward for good or bad behaviour. Goal of reinforcement learning
 is to learn an optimal policy for the environment. Until now we have three agent
@@ -1025,13 +1028,147 @@ designs:
 
 \emph{Passive learning} is when the policy is fixed and the utility function is
 unknown. \emph{Active learning} is when the agent also must find what to do(the
-transition model is unknown), where the issue is \emph{exploration}.
+transition model is unknown), where the issue is \emph{exploration}. The
+simplest utility estimation is the \emph{direct utility estimation}, this method
+reduces reinforcement learning to inductive learning, but it ignores the fact
+that the utilities of each state is dependent on other states;
+\setcounter{equation}{1}
+\begin{equation}
+  \label{eq:utility}
+  U^\pi(s) = R(s) + \gamma \sum_{ s' } P(s' \mid s, \pi(s))U^\pi(s')
+\end{equation}
+
+\emph{Adaptive dynamic programming}(ADP) uses the constraints among the
+utilities of states by learning the transition model and solving the Markov
+decision process. There are two possible improvements to this approach:
+\begin{enumerate}
+\item \emph{Bayesian reinforcement learning:} Assume hypotheses' $h$ and the
+  prior probability $P(h)$ and obtain the posterior probability $P(h \mid e)$
+  through observation of data, when the agent is done learning the optimal
+  policy is obtained from the highest expected utility: $\pi^\ast =
+  \text{argmax}_\pi \sum_h P(h \mid e)u^\pi_h$
+\item \emph{Robust control theory:} Similar, but instead defines the optimal
+  robust policy to be the best hypotheses in the worst case: $\pi^\ast =
+  \text{argmax}_\pi \min_h u^\pi_h$
+
+\end{enumerate}
+
+\emph{Temporal-difference learning} uses difference in utilities between
+successive states:
+\begin{equation}
+  \label{eq:temporaldiff}
+  U^\pi(s) \leftarrow U^\pi(s) + \alpha (R(s) + \gamma U^\pi(s') - U^\pi(s))
+\end{equation}
+Here $\alpha$ is the \emph{learning rate}, can be a constant or a function.
+Notice that the update rule for TD does not need the transition model.
+
+Passive learning agents works with fixed policy's, active learning agents
+discovers the best actions. This is done using Bellman equations:
+\begin{equation}
+  \label{eq:active}
+  U(s) = R(s) \gamma \max_a \sum_{s'} P(s' \mid s,a )U(s')
+\end{equation}
+ADP is an \emph{greedy agent} and they usually don't find the optimal policy as
+they get stuck on local optima. Agents must choose in the tradeoff between
+\emph{exploration} and \emph{exploitation}. This is introduced to the agent
+through the use of an \emph{exploitation function}, $f(u,n)$, where $u$
+represents the wanted values(the greed) and $n$ represents the how often an
+action have been tried. Implemented in Eq. \ref{eq:active}, where $N(s,a)$ gives
+the number of times the action in that state have been tried:
+\begin{equation}
+  \label{eq:activeexplore}
+  U(s) = R(s) \gamma \max_a f(\sum_{s'} P(s' \mid s,a )U(s'), N(s,a))
+\end{equation}
+
+Next we create an \emph{active TD} learning agent. This is done using
+\emph{Q-learning}, which learns an action-utility function using a stored value,
+$Q(s,a)$, of a given action in a state that translates to the utility function
+by $U(s) = \max_a Q(s,a)$. As it uses $Q(s,a)$ it no longer needs the transition
+model and the $Q$ values are constrained using the equation:
+\begin{equation}
+  \label{eq:qconstraint}
+  Q(s,a) = R(s) \gamma \sum_{s'} P(s' \mid s,a ) \max_{a'} Q(s',a')
+\end{equation}
+The update equation for TD Q-learning becomes:
+\begin{equation}
+  \label{eq:qupdate}
+  Q(s,a) \leftarrow Q(s,a) + \alpha (R(s) + \gamma \max_{a'} Q(s',a') - Q(s,a))
+\end{equation}
+
+The TD Q-learning is called a \emph{off-policy} algorithm as it does not care
+about the actual policy, \emph{SARSA} is a related \emph{on-policy}, it is
+updated using: $Q(s,a) \leftarrow Q(s,a) + \alpha (R(s) + \gamma Q(s',a') - Q(s,a))$
 
 \section{Philosophical Foundations}
+\emph{Weak AI} is the assertion that machines can act as if they where
+intelligent, while \emph{string AI} is the assertion that machines are actually
+thinking(not simulating). Alan Turing defined the \emph{Turing test} to check if
+an machine could act as a human: An interrogator has 5 minutes to talk to a man
+or machine and must after that try and decide if he talked to a man or machine,
+if the machine tricks the interrogator 30\% of the time it passes and can act as
+a human. Turing, and others, also gave more objections to the possibility of intelligent
+machines:
+\begin{enumerate}
+\item \emph{Disability:} A machine can never do X(be kind, resourceful, friendly...)
+\item \emph{Gödel:} G(F) is a sentence of F, but cannot be proved within F, if F
+  is consistent, then G(F) is true.
+\item \emph{Informality:} Behaviour is not rational and informal, you cant
+  program spontaneous chatter. The \emph{qualification problem} is that it is
+  impossible to program to handle everything.
+\end{enumerate}
 
+Other philosophical jargo:
+\begin{itemize}
+\item \emph{Consciousness:} A machine must be aware of its mental state and actions
+\item \emph{Phenomenology:} A machine must feel its emotions
+\item \emph{Intentionally:} Is a machines beliefs, states, desires and other
+  representations actually ``real''
+\item \emph{Dualism:} What is the connection between mind and body, is it just
+  as inferring over sensors and responding with actuators.
+\item \emph{Functionalism:} A mental state is any intermediate casual condition
+  between input and output. Brain replacement experiment: Say we can change out
+  any neuron in the brain with an exact artificial copy. If we swap out every
+  neuron one by one, are you the same person? Are you even a person anymore?
+\item \emph{Biological naturalism:} Our brain is just electronic signals in the
+  brain, whats the difference from artificial neural networks:
+\item \emph{Technological singularity:} If humans create a machine smarter then
+  them, they would be able to create something smarter then them and so on
+  until humans are left in the dust.
+\item \emph{Transhumanism:} A movement that looks forward to a future where
+  humans are merged or replaced with machines.
+\end{itemize}
+
+Ethical problems:
+\begin{itemize}
+\item People might lose their jobs to automation
+\item People might lose their sense of uniqueness
+\item People might get to much/little leisure time
+\item AI might be used to reach undesirable goals(war, terminator, mass surveillance)
+\item AI might result in the loss of accountability
+\item AI might be the end of mankind
+\end{itemize}
 
 \section{AI: The Present and Future}
+Which components of an agent can be improved?
+\begin{itemize}
+\item Interaction with the environment through sensors and actuators
+\item Keeping track of the state of the world
+\item Projecting, evaluating, and selecting future courses of action
+\item Utility as an expression of preferences
+\item Learning
+\end{itemize}
 
+Are we going in the right direction? There are 4 specifications of intelligent agents:
+\begin{itemize}
+\item \emph{Perfect rationality:} Always chooses the best action, maximises utility
+\item \emph{Calculated rationality:} Perfect rationality in action, by the time
+  the perfect rational action has been found, time has passed it is no longer needed.
+\item \emph{Bounded rationality:} Returns a good enough approximation of the
+  optimal action. More realistic.
+\item \emph{Bounded optimally:} Good enough, given its computational bounds. A
+  variation is \emph{Asymptotic bounded optimality}(ABO), where the bounds are
+  set to help with comparison between systems.
+\end{itemize}
 
 \setcounter{section}{0}
 \chapter{CBR paper}
